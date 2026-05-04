@@ -1,0 +1,59 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/Dockerfile'
+      - 'versions.yaml'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed images
+        id: set-matrix
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep 'Dockerfile' | xargs -I{} dirname {} | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "matrix=${CHANGED}" >> $GITHUB_OUTPUT
+
+  build-push:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.matrix != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read version
+        id: version
+        run: |
+          IMAGE_NAME=$(basename ${{ matrix.image }})
+          VERSION=$(grep "^${IMAGE_NAME}:" versions.yaml | awk '{print $2}' | tr -d '"')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.image }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ steps.version.outputs.image_name }}:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/${{ steps.version.outputs.image_name }}:latest
