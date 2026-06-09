@@ -1,3 +1,4 @@
 bootstrap: "1.0.0"
+nextcloud-redis: "1.0.0"
 wordpress-redis: "1.0.1"
 woodpecker-tools: "1.0.1"
