@@ -1,5 +1,5 @@
 bootstrap: "1.0.1"
-ducklake-loader: "1.0.0"
+ducklake-loader: "1.0.1"
 nextcloud-redis: "1.0.0"
 wordpress-redis: "1.0.1"
 woodpecker-tools: "1.0.2"
