@@ -2,5 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "description": "dlt does not support Python 3.15 yet (Requires-Python <3.15)",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["python"],
+      "matchFileNames": ["ducklake-loader/**"],
+      "allowedVersions": "<3.15"
+    }
   ]
 }
