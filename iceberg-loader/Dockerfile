@@ -1,4 +1,4 @@
-FROM python:3.14.8-slim
+FROM python:3.15.2-slim
 
 RUN pip install --no-cache-dir \
       "dlt[pyiceberg,s3]==1.32.0" \
